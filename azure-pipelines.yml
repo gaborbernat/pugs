@@ -1,0 +1,93 @@
+trigger:
+- master
+
+jobs:
+
+- job: 'Test_Linux'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  strategy:
+    matrix:
+      Python27:
+        python.version: '2.7'
+      Python34:
+        python.version: '3.4'
+      Python35:
+        python.version: '3.5'
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+    maxParallel: 4
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install pytest
+      pip install -e .[test]
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "not testfail" --junitxml=junit\test-results.xml --test-run-title="Test_Title"
+    displayName: 'pytest with junitxml flag - passes'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "not testfail"
+    displayName: 'pytest with defaults - passes'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "testfail"
+    displayName: 'pytest with junitxml flag - failures'
+    continueOnError: true
+
+- job: 'Test_Windows'
+  pool:
+    vmImage: 'vs2017-win2016'
+  strategy:
+    matrix:
+      Python27:
+        python.version: '2.7'
+      Python34:
+        python.version: '3.4'
+      Python35:
+        python.version: '3.5'
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+    maxParallel: 4
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -e .[test]
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "not testfail" --junitxml=junit\test-results.xml --test-run-title="Test_Title"
+    displayName: 'pytest with junitxml flag - passes'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "not testfail"
+    displayName: 'pytest with defaults - passes'
+
+  - script: |
+      pip install pytest
+      pytest tests -v -m "testfail"
+    displayName: 'pytest with junitxml flag - failures'
+    continueOnError: true

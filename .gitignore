@@ -1,0 +1,9 @@
+.idea
+*.egg-info/
+.tox/
+.*_cache
+__pycache__
+**.pyc
+build
+dist
+src/pugs/version.py
